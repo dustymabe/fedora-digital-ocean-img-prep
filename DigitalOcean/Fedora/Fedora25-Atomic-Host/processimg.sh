@@ -35,9 +35,9 @@ for exe in wget sha256sum unxz; do
 done
 
 # Vars for the image
-XZIMGURL='https://kojipkgs.fedoraproject.org//work/tasks/7833/16177833/Fedora-Atomic-25-20161023.n.0.x86_64.raw.xz'
+XZIMGURL='https://kojipkgs.fedoraproject.org/compose/branched/Fedora-25-20161031.n.1/compose/CloudImages/x86_64/images/Fedora-Atomic-25-20161031.n.1.x86_64.raw.xz'
 XZIMG=$(basename $XZIMGURL) # Just the file name
-XZIMGSUM='a9dde4ae13291bebaf4647007ebef5b48c837848f02a61be267a68199a30f803'
+XZIMGSUM='27690bef80977a3e7557db730626e9e053c44f8f497caf4bbd0d93e3f2698057'
 IMG=${XZIMG:0:-3}           # Pull .xz off of the end
 
 # Get the xz image, verify, and decompress the contents
