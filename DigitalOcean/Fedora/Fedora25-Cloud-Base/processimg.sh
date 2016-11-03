@@ -22,23 +22,26 @@
 #          different machines.
 #  author: Dusty Mabe (dusty@dustymabe.com)
 
-set -eu 
+set -eux 
 mkdir -p /tmp/doimg/
 cd /tmp/doimg
 
-# need wget/sha256sum/unxz for this script
-for exe in wget sha256sum unxz; do
-    if ! which $exe >/dev/null; then
-        echo "You need $exe to run this program"
-        exit 1
-    fi
-done
+docker run -i --rm --privileged -v /tmp/doimg:/tmp/doimg fedora:24 bash << 'EOF'
+set -eux
+WORKDIR=/workdir
+TMPMNT=/workdir/tmp/mnt
 
 # Vars for the image
 XZIMGURL='https://kojipkgs.fedoraproject.org/compose/branched/Fedora-25-20161031.n.1/compose/CloudImages/x86_64/images/Fedora-Cloud-Base-25-20161031.n.1.x86_64.raw.xz'
 XZIMG=$(basename $XZIMGURL) # Just the file name
 XZIMGSUM='16f2e554d091a6a98b3620f4ae8ec99e7cd8eb242f8bc2b6d869f689c0ba1a0c'
 IMG=${XZIMG:0:-3}           # Pull .xz off of the end
+
+# Create workdir and cd to it
+mkdir -p $TMPMNT && cd $WORKDIR
+
+# Get any additional rpms that we need
+dnf install -y gdisk wget xz
 
 # Get the xz image, verify, and decompress the contents
 wget $XZIMGURL
@@ -49,5 +52,44 @@ if [ "$imgsum" != "$XZIMGSUM" ]; then
 fi
 unxz $XZIMG
 
-echo "The following image has been downloaded verified and uncompressed:"
-echo "   $(pwd)/$XZIMG"
+# Find the starting byte and the total bytes in the 1st partition
+# NOTE: normally would be able to use partx/kpartx directly to loopmount
+#       the disk image and add the partitions, but inside of docker I found
+#       that wasn't working quite right so I resorted to this manual approach.
+PAIRS=$(partx --pairs $IMG)
+eval `echo "$PAIRS" | head -n 1 | sed 's/ /\n/g'`
+STARTBYTES=$((512*START))   # 512 bytes * the number of the start sector
+TOTALBYTES=$((512*SECTORS)) # 512 bytes * the number of sectors in the partition
+
+# Discover the next available loopback device
+LOOPDEV=$(losetup -f)
+LOMAJOR=''
+
+# Make the loopback device if it doesn't exist already
+if [ ! -e $LOOPDEV ]; then
+    LOMAJOR=${LOOPDEV#/dev/loop} # Get just the number
+    mknod -m660 $LOOPDEV b 7 $LOMAJOR
+fi
+
+# Loopmount the first partition of the device
+losetup -v --offset $STARTBYTES --sizelimit $TOTALBYTES $LOOPDEV $IMG
+
+# Mount it on $TMPMNT
+mount $LOOPDEV $TMPMNT
+
+DONETCFGFILE=/etc/cloud/cloud.cfg.d/99-digitalocean.cfg
+cat > ${TMPMNT}/${DONETCFGFILE} <<EOM
+# Disable network config until BZ #1389530 is fixed
+network: {config: disabled}
+EOM
+chcon -v --reference=${TMPMNT}/etc/fstab ${TMPMNT}/${DONETCFGFILE}
+
+# umount and tear down loop device
+umount $TMPMNT
+losetup -d $LOOPDEV
+[ ! -z $LOMAJOR ] && rm -f $LOOPDEV #Only remove if we created it
+
+# finally, cp $IMG into /tmp/doimg/ on the host
+cp -a $IMG /tmp/doimg/ 
+
+EOF
