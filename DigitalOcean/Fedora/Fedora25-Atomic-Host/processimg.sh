@@ -40,9 +40,9 @@ WORKDIR=/workdir
 TMPMNT=/workdir/tmp/mnt
 
 # Vars for the image
-XZIMGURL='https://kojipkgs.fedoraproject.org/compose/twoweek/Fedora-Atomic-25-20170418.0/compose/CloudImages/x86_64/images/Fedora-Atomic-25-20170418.0.x86_64.raw.xz'
+XZIMGURL='https://kojipkgs.fedoraproject.org/compose/twoweek/Fedora-Atomic-25-20170425.0/compose/CloudImages/x86_64/images/Fedora-Atomic-25-20170425.0.x86_64.raw.xz'
 XZIMG=$(basename $XZIMGURL) # Just the file name
-XZIMGSUM='aba5615385e87e9813d83d18e96958e9c9d3c071f8ccf32be39e5c60dd78ef44'
+XZIMGSUM='6f01277df909645e80067d82762886af2f6db6c5e22ae2fd2de68737da0ab5fd'
 IMG=${XZIMG:0:-3}           # Pull .xz off of the end
 
 # Create workdir and cd to it
@@ -95,10 +95,7 @@ mount /dev/mapper/atomicos-root $TMPMNT
 
 # Disable NM and enable network
 chroot ${TMPMNT}/ostree/deploy/fedora-atomic/deploy/*.0/ <<IEOF
-rm etc/systemd/system/multi-user.target.wants/NetworkManager.service
-rm etc/systemd/system/dbus-org.freedesktop.NetworkManager.service
-rm etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service
-/sbin/chkconfig network on
+echo -e '[main]\ndns=none' > /etc/NetworkManager/conf.d/dont-touch-resolvconf.conf
 IEOF
 
 
