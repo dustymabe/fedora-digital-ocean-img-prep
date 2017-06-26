@@ -40,9 +40,9 @@ WORKDIR=/workdir
 TMPMNT=/workdir/tmp/mnt
 
 # Vars for the image
-XZIMGURL='https://kojipkgs.fedoraproject.org/compose/twoweek/Fedora-Atomic-25-20170605.0/compose/CloudImages/x86_64/images/Fedora-Atomic-25-20170605.0.x86_64.raw.xz'
+XZIMGURL='https://dl.fedoraproject.org/pub/alt/atomic/stable/Fedora-Atomic-25-20170626.0/CloudImages/x86_64/images/Fedora-Atomic-25-20170626.0.x86_64.raw.xz'
 XZIMG=$(basename $XZIMGURL) # Just the file name
-XZIMGSUM='eea6bd1bcdba75d954f9d794de9915b1bce9190b9b08c7616372c410d39e0016'
+XZIMGSUM='150dcdd1a311e263cbb437b90c5882063a95629659dd3d5c2178842dbe155b00'
 IMG=${XZIMG:0:-3}           # Pull .xz off of the end
 
 # Create workdir and cd to it
