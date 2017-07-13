@@ -26,7 +26,7 @@ set -eux
 mkdir -p /tmp/doimg/
 cd /tmp/doimg
 
-IMGURL='https://dl.fedoraproject.org/pub/alt/stage/26_RC-1.5/CloudImages/x86_64/images/Fedora-Cloud-Base-26-1.5.x86_64.qcow2'
+IMGURL='https://download.fedoraproject.org/pub/fedora/linux/releases/26/CloudImages/x86_64/images/Fedora-Cloud-Base-26-1.5.x86_64.qcow2'
 IMGSUM='37a621dda65b04e8b6eee207088ff7697795cb2affdac13ed77166453989557c'
 
 # Get the xz image, verify, and decompress the contents
