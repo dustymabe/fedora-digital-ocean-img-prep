@@ -28,11 +28,14 @@ cd /tmp/doimg
 
 IMGURL='https://kojipkgs.fedoraproject.org/compose/twoweek/Fedora-Atomic-26-20170707.1/compose/CloudImages/x86_64/images/Fedora-Atomic-26-20170707.1.x86_64.qcow2'
 IMGSUM='d342c0923b57090c60f2df26bb7a0531924ee00b66f2d05ddf32e0741ad032bb'
+IMG=$(basename $IMGURL) # Just the file name
 
 # Get the xz image, verify, and decompress the contents
-curl -O $IMGURL
+curl -L -O $IMGURL
 imgsum=$(sha256sum $IMG | cut -d " " -f 1)
 if [ "$imgsum" != "$IMGSUM" ]; then
     echo "Checksum doesn't match: $imgsum"
     exit 1
 fi
+
+echo "File is at: $(readlink -f $IMG)"
